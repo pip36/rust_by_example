@@ -20,3 +20,9 @@ cargo build --release
 # Produce an executable binary
 rustc hello.rs
 ```
+
+## Debugging
+
+CodeLLDB Extension (VsCode)
+
+hello_world has basic launch configuration
