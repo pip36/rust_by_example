@@ -16,4 +16,7 @@ cargo run
 
 # Run a build
 cargo build --release
+
+# Produce an executable binary
+rustc hello.rs
 ```
