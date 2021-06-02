@@ -1,5 +1,5 @@
 [package]
-name = "primitives"
+name = "custom_types"
 version = "0.1.0"
 authors = ["Phil White"]
 edition = "2018"
