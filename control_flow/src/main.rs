@@ -143,4 +143,72 @@ fn main() {
         (x, y) if x < y => println!("Second wins"),
         _ => (), // this is necessary to help the compiler, even though it will never run
     }
+
+    // Specific values in ranges can be bound, so they can be used in the match arm
+    fn get_num() -> u32 {
+        7
+    }
+    match get_num() {
+        n @ 1..=10 => println!("{}", n), // Exact value that matched is bound
+        _ => print!("Something else..."),
+    }
+
+    // Enums can be matched. That includes Option:
+    fn maybe_get_num() -> Option<u32> {
+        Some(10)
+    }
+    match maybe_get_num() {
+        Some(n @ 10) => println!("It's {}!", n), // use binding to match specific
+        Some(n) => println!("It's a number - {}", n), // any other success
+        None => println!("Couldn't get num"),    // match failure
+    }
+
+    // Match can be clunky in some circumstances but "if let" can be used as shorthand
+    let maybe = Some(5);
+
+    match maybe {
+        Some(5) => println!("5"),
+        _ => {}
+    }
+
+    if let Some(5) = maybe {
+        println!("5")
+    }
+
+    // enum example
+    enum Duration {
+        Hour,
+        Week,
+        Month(u8),
+    }
+    let h = Duration::Hour;
+    let w = Duration::Week;
+    let feb = Duration::Month(28);
+
+    if let Duration::Hour = h {
+        println!("hour");
+    }
+
+    if let Duration::Week = w {
+        println!("week");
+    }
+
+    if let Duration::Month(days) = feb {
+        println!("Month - {} days", days);
+    }
+
+    if let Duration::Month(days @ 28) = feb {
+        println!("probably Feb");
+    }
+
+    // There is also while let which will continue to loop until the destructure fails
+    let mut counter = Some(0);
+    while let Some(i) = counter {
+        if i < 10 {
+            println!("Counter: {}", i);
+            counter = Some(i + 1)
+        } else {
+            counter = None
+        }
+    }
 }
