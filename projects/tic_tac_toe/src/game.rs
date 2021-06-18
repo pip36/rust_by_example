@@ -2,14 +2,14 @@ use Symbol::*;
 
 pub struct Game {
     board: Vec<Symbol>,
-    is_cross: bool,
+    current_player: Symbol,
 }
 
 impl Game {
     pub fn start() -> Game {
         Game {
             board: vec![Empty; 9],
-            is_cross: true,
+            current_player: Cross,
         }
     }
 
@@ -22,14 +22,13 @@ impl Game {
             return Err(PlayError::SquareTaken);
         }
 
-        let symbol = match self.is_cross {
-            true => Cross,
-            false => Naught,
+        self.board[index] = self.current_player;
+
+        self.current_player = match self.current_player {
+            Naught => Cross,
+            Cross => Naught,
+            Empty => panic!("Player can't be empty"),
         };
-
-        self.board[index] = symbol;
-
-        self.is_cross = !self.is_cross;
         return Ok(());
     }
 
@@ -65,7 +64,7 @@ fn all_match(symbols: &[Symbol]) -> Option<&Symbol> {
     return None;
 }
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, PartialEq, Debug, Copy)]
 pub enum Symbol {
     Empty,
     Cross,
@@ -170,7 +169,7 @@ mod tests {
 
         let game = Game {
             board: initial_board,
-            is_cross: true,
+            current_player: Cross,
         };
 
         let winner = game.get_winner().unwrap();
