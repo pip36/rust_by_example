@@ -14,12 +14,9 @@ impl Game {
     }
 
     pub fn play(&mut self, index: usize) -> Result<(), PlayError> {
-        if index > 8 {
-            return Err(PlayError::OutOfRange);
-        }
-
-        if self.board[index] != Empty {
-            return Err(PlayError::SquareTaken);
+        let error = self.check_for_play_error(index);
+        if error.is_some() {
+            return Err(error.unwrap());
         }
 
         self.board[index] = self.current_player;
@@ -27,6 +24,18 @@ impl Game {
         self.toggle_player();
 
         return Ok(());
+    }
+
+    fn check_for_play_error(&self, index: usize) -> Option<PlayError> {
+        if index > 8 {
+            return Some(PlayError::OutOfRange);
+        }
+
+        if self.board[index] != Empty {
+            return Some(PlayError::SquareTaken);
+        }
+
+        return None;
     }
 
     pub fn get_winner(&self) -> Option<&Symbol> {
