@@ -1,12 +1,14 @@
+use Symbol::*;
+
 pub struct Game {
-    board: Vec<String>,
+    board: Vec<Symbol>,
     is_cross: bool,
 }
 
 impl Game {
     pub fn start() -> Game {
         Game {
-            board: vec![empty(); 9],
+            board: vec![Empty; 9],
             is_cross: true,
         }
     }
@@ -16,13 +18,13 @@ impl Game {
             return Err(PlayError::OutOfRange);
         }
 
-        if self.board[index] != empty() {
+        if self.board[index] != Empty {
             return Err(PlayError::SquareTaken);
         }
 
         let symbol = match self.is_cross {
-            true => cross(),
-            false => naught(),
+            true => Cross,
+            false => Naught,
         };
 
         self.board[index] = symbol;
@@ -31,7 +33,7 @@ impl Game {
         return Ok(());
     }
 
-    pub fn get_winner(&self) -> Option<String> {
+    pub fn get_winner(&self) -> Option<&Symbol> {
         let top_row = self.get_row(0);
         let middle_row = self.get_row(1);
         let bottom_row = self.get_row(2);
@@ -46,31 +48,28 @@ impl Game {
         return None;
     }
 
-    fn get_row(&self, row_num: usize) -> &[String] {
+    fn get_row(&self, row_num: usize) -> &[Symbol] {
         let start = row_num * 3;
         &self.board[start..=start + 2]
     }
 }
 
-fn all_match(symbols: &[String]) -> Option<String> {
+fn all_match(symbols: &[Symbol]) -> Option<&Symbol> {
     let symbol = symbols.first().unwrap();
-    if symbol == "" {
+    if matches!(symbol, Empty) {
         return None;
     }
     if symbols.iter().all(|i| i == symbol) {
-        return Some(symbol.to_string());
+        return Some(symbol);
     }
     return None;
 }
 
-fn empty() -> String {
-    String::from("")
-}
-fn cross() -> String {
-    String::from("X")
-}
-fn naught() -> String {
-    String::from("O")
+#[derive(Clone, PartialEq, Debug)]
+pub enum Symbol {
+    Empty,
+    Cross,
+    Naught,
 }
 
 pub enum PlayError {
@@ -87,20 +86,23 @@ mod tests {
     fn initial_board_representation_is_created() {
         let game = Game::start();
 
-        assert_eq!(game.board, vec!["", "", "", "", "", "", "", "", ""]);
+        assert_eq!(
+            game.board,
+            vec![Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty]
+        );
     }
 
     #[rstest]
-    #[case(0, vec!["X", "", "", "", "", "", "", "", ""])]
-    #[case(1, vec!["", "X", "", "", "", "", "", "", ""])]
-    #[case(2, vec!["", "", "X", "", "", "", "", "", ""])]
-    #[case(3, vec!["", "", "", "X", "", "", "", "", ""])]
-    #[case(4, vec!["", "", "", "", "X", "", "", "", ""])]
-    #[case(5, vec!["", "", "", "", "", "X", "", "", ""])]
-    #[case(6, vec!["", "", "", "", "", "", "X", "", ""])]
-    #[case(7, vec!["", "", "", "", "", "", "", "X", ""])]
-    #[case(8, vec!["", "", "", "", "", "", "", "", "X"])]
-    fn x_goes_first_in_any_position(#[case] index: usize, #[case] expected_board: Vec<&str>) {
+    #[case(0, vec![Cross, Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty])]
+    #[case(1, vec![Empty, Cross, Empty, Empty, Empty, Empty, Empty, Empty, Empty])]
+    #[case(2, vec![Empty, Empty, Cross, Empty, Empty, Empty, Empty, Empty, Empty])]
+    #[case(3, vec![Empty, Empty, Empty, Cross, Empty, Empty, Empty, Empty, Empty])]
+    #[case(4, vec![Empty, Empty, Empty, Empty, Cross, Empty, Empty, Empty, Empty])]
+    #[case(5, vec![Empty, Empty, Empty, Empty, Empty, Cross, Empty, Empty, Empty])]
+    #[case(6, vec![Empty, Empty, Empty, Empty, Empty, Empty, Cross, Empty, Empty])]
+    #[case(7, vec![Empty, Empty, Empty, Empty, Empty, Empty, Empty, Cross, Empty])]
+    #[case(8, vec![Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty, Cross])]
+    fn x_goes_first_in_any_position(#[case] index: usize, #[case] expected_board: Vec<Symbol>) {
         let mut game = Game::start();
         game.play(index).ok();
 
@@ -117,7 +119,10 @@ mod tests {
         };
 
         assert!(is_out_of_range, "Out of range error should be returned");
-        assert_eq!(game.board, vec!["", "", "", "", "", "", "", "", ""]);
+        assert_eq!(
+            game.board,
+            vec![Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty]
+        );
     }
 
     #[test]
@@ -131,7 +136,10 @@ mod tests {
         };
 
         assert!(is_square_taken, "SquareTakenError should be returned");
-        assert_eq!(game.board, vec!["X", "", "", "", "", "", "", "", ""]);
+        assert_eq!(
+            game.board,
+            vec![Cross, Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty]
+        );
     }
 
     #[test]
@@ -142,28 +150,32 @@ mod tests {
             game.play(index).ok();
         }
 
-        assert_eq!(game.board, vec!["X", "O", "X", "O", "", "", "", "", ""]);
+        assert_eq!(
+            game.board,
+            vec![Cross, Naught, Cross, Naught, Empty, Empty, Empty, Empty, Empty]
+        );
     }
 
     #[rstest]
-    #[case(vec!["X", "X", "X", "", "", "", "", "O", "O"], "X")]
-    #[case(vec!["", "", "", "X", "X", "X", "", "O", "O"], "X")]
-    #[case(vec!["", "", "", "O", "O", "", "X", "X", "X"], "X")]
-    #[case(vec!["O", "O", "O", "", "", "X", "", "X", "X"], "O")]
+    #[case(vec![Cross, Cross, Cross, Empty, Empty, Empty, Empty, Naught, Naught], Cross)]
+    #[case(vec![Empty, Empty, Empty, Cross, Cross, Cross, Empty, Naught, Naught], Cross)]
+    #[case(vec![Empty, Empty, Empty, Naught, Naught, Empty, Cross, Cross, Cross], Cross)]
+    #[case(vec![Naught, Naught, Naught, Empty, Empty, Cross, Empty, Cross, Cross], Naught)]
 
     fn winning_boards_return_correct_winner(
-        #[case] initial_board: Vec<&str>,
-        #[case] expected_winner: &str,
+        #[case] initial_board: Vec<Symbol>,
+        #[case] expected_winner: Symbol,
     ) {
-        let initial_board = initial_board.iter().map(|x| x.to_string()).collect();
+        let initial_board = initial_board;
 
-        let mut game = Game {
+        let game = Game {
             board: initial_board,
             is_cross: true,
         };
 
         let winner = game.get_winner().unwrap();
+        let winners_match = matches!(winner, expected_winner);
 
-        assert_eq!(winner, expected_winner);
+        assert_eq!(winners_match, true);
     }
 }
