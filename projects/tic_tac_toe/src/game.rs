@@ -24,11 +24,8 @@ impl Game {
 
         self.board[index] = self.current_player;
 
-        self.current_player = match self.current_player {
-            Naught => Cross,
-            Cross => Naught,
-            Empty => panic!("Player can't be empty"),
-        };
+        self.toggle_player();
+
         return Ok(());
     }
 
@@ -50,6 +47,14 @@ impl Game {
     fn get_row(&self, row_num: usize) -> &[Symbol] {
         let start = row_num * 3;
         &self.board[start..=start + 2]
+    }
+
+    fn toggle_player(&mut self) {
+        self.current_player = match self.current_player {
+            Naught => Cross,
+            Cross => Naught,
+            Empty => panic!("Player can't be empty"),
+        };
     }
 }
 
