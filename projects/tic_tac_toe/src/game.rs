@@ -4,7 +4,7 @@ pub struct Game {
 }
 
 impl Game {
-    pub fn new() -> Game {
+    pub fn start() -> Game {
         Game {
             board: vec![empty(); 9],
             is_cross: true,
@@ -30,6 +30,37 @@ impl Game {
         self.is_cross = !self.is_cross;
         return Ok(());
     }
+
+    pub fn get_winner(&self) -> Option<String> {
+        let top_row = self.get_row(0);
+        let middle_row = self.get_row(1);
+        let bottom_row = self.get_row(2);
+
+        for triple in [top_row, middle_row, bottom_row].iter() {
+            let winner = all_match(triple);
+            if winner.is_some() {
+                return winner;
+            }
+        }
+
+        return None;
+    }
+
+    fn get_row(&self, row_num: usize) -> &[String] {
+        let start = row_num * 3;
+        &self.board[start..=start + 2]
+    }
+}
+
+fn all_match(symbols: &[String]) -> Option<String> {
+    let symbol = symbols.first().unwrap();
+    if symbol == "" {
+        return None;
+    }
+    if symbols.iter().all(|i| i == symbol) {
+        return Some(symbol.to_string());
+    }
+    return None;
 }
 
 fn empty() -> String {
@@ -54,7 +85,7 @@ mod tests {
 
     #[test]
     fn initial_board_representation_is_created() {
-        let game = Game::new();
+        let game = Game::start();
 
         assert_eq!(game.board, vec!["", "", "", "", "", "", "", "", ""]);
     }
@@ -70,17 +101,15 @@ mod tests {
     #[case(7, vec!["", "", "", "", "", "", "", "X", ""])]
     #[case(8, vec!["", "", "", "", "", "", "", "", "X"])]
     fn x_goes_first_in_any_position(#[case] index: usize, #[case] expected_board: Vec<&str>) {
-        let mut game = Game::new();
-        match game.play(index) {
-            _ => (),
-        }
+        let mut game = Game::start();
+        game.play(index).ok();
 
         assert_eq!(game.board, expected_board);
     }
 
     #[test]
     fn when_position_is_out_of_range_board_is_unchanged_and_error_is_reported() {
-        let mut game = Game::new();
+        let mut game = Game::start();
 
         let is_out_of_range = match game.play(9) {
             Err(PlayError::OutOfRange) => true,
@@ -93,10 +122,8 @@ mod tests {
 
     #[test]
     fn cannot_play_in_a_square_thats_already_taken() {
-        let mut game = Game::new();
-        match game.play(0) {
-            _ => (),
-        }
+        let mut game = Game::start();
+        game.play(0).ok();
 
         let is_square_taken = match game.play(0) {
             Err(PlayError::SquareTaken) => true,
@@ -109,14 +136,34 @@ mod tests {
 
     #[test]
     fn x_and_o_alternate_with_each_play() {
-        let mut game = Game::new();
+        let mut game = Game::start();
 
         for index in 0..4 {
-            match game.play(index) {
-                _ => (),
-            }
+            game.play(index).ok();
         }
 
         assert_eq!(game.board, vec!["X", "O", "X", "O", "", "", "", "", ""]);
+    }
+
+    #[rstest]
+    #[case(vec!["X", "X", "X", "", "", "", "", "O", "O"], "X")]
+    #[case(vec!["", "", "", "X", "X", "X", "", "O", "O"], "X")]
+    #[case(vec!["", "", "", "O", "O", "", "X", "X", "X"], "X")]
+    #[case(vec!["O", "O", "O", "", "", "X", "", "X", "X"], "O")]
+
+    fn winning_boards_return_correct_winner(
+        #[case] initial_board: Vec<&str>,
+        #[case] expected_winner: &str,
+    ) {
+        let initial_board = initial_board.iter().map(|x| x.to_string()).collect();
+
+        let mut game = Game {
+            board: initial_board,
+            is_cross: true,
+        };
+
+        let winner = game.get_winner().unwrap();
+
+        assert_eq!(winner, expected_winner);
     }
 }
