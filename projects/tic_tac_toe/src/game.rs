@@ -11,13 +11,13 @@ impl Game {
         }
     }
 
-    pub fn play(&mut self, index: usize) -> Result<(), &'static str> {
+    pub fn play(&mut self, index: usize) -> Result<(), PlayError> {
         if index > 8 {
-            return Err("Out Of Range");
+            return Err(PlayError::OutOfRange);
         }
 
         if self.board[index] != empty() {
-            return Err("Square Is Taken");
+            return Err(PlayError::SquareTaken);
         }
 
         let symbol = match self.is_cross {
@@ -40,6 +40,11 @@ fn cross() -> String {
 }
 fn naught() -> String {
     String::from("O")
+}
+
+pub enum PlayError {
+    SquareTaken,
+    OutOfRange,
 }
 
 #[cfg(test)]
@@ -77,14 +82,13 @@ mod tests {
     fn when_position_is_out_of_range_board_is_unchanged_and_error_is_reported() {
         let mut game = Game::new();
 
-        let mut err = "";
-        match game.play(9) {
-            Err(e) => err = e,
-            _ => (),
-        }
+        let is_out_of_range = match game.play(9) {
+            Err(PlayError::OutOfRange) => true,
+            _ => false,
+        };
 
+        assert!(is_out_of_range, "Out of range error should be returned");
         assert_eq!(game.board, vec!["", "", "", "", "", "", "", "", ""]);
-        assert_eq!(err, "Out Of Range");
     }
 
     #[test]
@@ -94,14 +98,13 @@ mod tests {
             _ => (),
         }
 
-        let mut err = "";
-        match game.play(0) {
-            Err(e) => err = e,
-            _ => (),
-        }
+        let is_square_taken = match game.play(0) {
+            Err(PlayError::SquareTaken) => true,
+            _ => false,
+        };
 
+        assert!(is_square_taken, "SquareTakenError should be returned");
         assert_eq!(game.board, vec!["X", "", "", "", "", "", "", "", ""]);
-        assert_eq!(err, "Square Is Taken");
     }
 
     #[test]
