@@ -177,7 +177,26 @@ mod tests {
     #[case(vec![Empty, Empty, Empty, Naught, Naught, Naught, Empty, Empty, Empty], Naught)]
     #[case(vec![Empty, Empty, Empty, Empty, Empty, Empty, Naught, Naught, Naught], Naught)]
 
-    fn winning_boards_return_correct_winner(
+    fn matching_symbol_in_row_returns_winner(
+        #[case] initial_board: Vec<Symbol>,
+        #[case] expected_winner: Symbol,
+    ) {
+        let initial_board = initial_board;
+
+        let game = Game {
+            board: initial_board,
+            current_player: Cross,
+        };
+
+        let winner = game.get_winner().unwrap();
+        let winners_match = matches!(winner, expected_winner);
+
+        assert_eq!(winners_match, true);
+    }
+
+    #[rstest]
+    #[case(vec![Cross, Empty, Empty, Cross, Empty, Empty, Cross, Empty, Empty], Cross)]
+    fn matching_symbol_in_column_returns_winner(
         #[case] initial_board: Vec<Symbol>,
         #[case] expected_winner: Symbol,
     ) {
