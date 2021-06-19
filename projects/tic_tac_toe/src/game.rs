@@ -38,12 +38,28 @@ impl Game {
         return None;
     }
 
-    pub fn get_winner(&self) -> Option<&Symbol> {
+    pub fn get_winner(&self) -> Option<Symbol> {
         let top_row = self.get_row(0);
         let middle_row = self.get_row(1);
         let bottom_row = self.get_row(2);
+        let left_column = &[self.board[0], self.board[3], self.board[6]];
+        let middle_column = &[self.board[1], self.board[4], self.board[7]];
+        let right_column = &[self.board[2], self.board[5], self.board[8]];
+        let diagonal_right = &[self.board[0], self.board[4], self.board[8]];
+        let diagonal_left = &[self.board[2], self.board[4], self.board[6]];
 
-        for triple in [top_row, middle_row, bottom_row].iter() {
+        for triple in [
+            top_row,
+            middle_row,
+            bottom_row,
+            left_column,
+            middle_column,
+            right_column,
+            diagonal_right,
+            diagonal_left,
+        ]
+        .iter()
+        {
             let winner = all_match(triple);
             if winner.is_some() {
                 return winner;
@@ -67,13 +83,13 @@ impl Game {
     }
 }
 
-fn all_match(symbols: &[Symbol]) -> Option<&Symbol> {
+fn all_match(symbols: &[Symbol]) -> Option<Symbol> {
     let symbol = symbols.first().unwrap();
     if matches!(symbol, Empty) {
         return None;
     }
     if symbols.iter().all(|i| i == symbol) {
-        return Some(symbol);
+        return Some(symbol.to_owned());
     }
     return None;
 }
@@ -196,7 +212,34 @@ mod tests {
 
     #[rstest]
     #[case(vec![Cross, Empty, Empty, Cross, Empty, Empty, Cross, Empty, Empty], Cross)]
+    #[case(vec![Empty, Cross, Empty, Empty, Cross, Empty, Empty, Cross, Empty], Cross)]
+    #[case(vec![Empty, Empty, Cross, Empty, Empty, Cross, Empty, Empty, Cross], Cross)]
+    #[case(vec![Naught, Empty, Empty, Naught, Empty, Empty, Naught, Empty, Empty], Naught)]
+    #[case(vec![Empty, Naught, Empty, Empty, Naught, Empty, Empty, Naught, Empty], Naught)]
+    #[case(vec![Empty, Empty, Naught, Empty, Empty, Naught, Empty, Empty, Naught], Naught)]
     fn matching_symbol_in_column_returns_winner(
+        #[case] initial_board: Vec<Symbol>,
+        #[case] expected_winner: Symbol,
+    ) {
+        let initial_board = initial_board;
+
+        let game = Game {
+            board: initial_board,
+            current_player: Cross,
+        };
+
+        let winner = game.get_winner().unwrap();
+        let winners_match = matches!(winner, expected_winner);
+
+        assert_eq!(winners_match, true);
+    }
+
+    #[rstest]
+    #[case(vec![Cross, Empty, Empty, Empty, Cross, Empty, Empty, Empty, Cross], Cross)]
+    #[case(vec![Naught, Empty, Empty, Empty, Naught, Empty, Empty, Empty, Naught], Naught)]
+    #[case(vec![Empty, Empty, Cross, Empty, Cross, Empty, Cross, Empty, Empty], Cross)]
+    #[case(vec![Empty, Empty, Naught, Empty, Naught, Empty, Naught, Empty, Empty], Naught)]
+    fn matching_symbols_on_diagonal_returns_winner(
         #[case] initial_board: Vec<Symbol>,
         #[case] expected_winner: Symbol,
     ) {
