@@ -170,10 +170,12 @@ mod tests {
     }
 
     #[rstest]
-    #[case(vec![Cross, Cross, Cross, Empty, Empty, Empty, Empty, Naught, Naught], Cross)]
-    #[case(vec![Empty, Empty, Empty, Cross, Cross, Cross, Empty, Naught, Naught], Cross)]
-    #[case(vec![Empty, Empty, Empty, Naught, Naught, Empty, Cross, Cross, Cross], Cross)]
-    #[case(vec![Naught, Naught, Naught, Empty, Empty, Cross, Empty, Cross, Cross], Naught)]
+    #[case(vec![Cross, Cross, Cross, Empty, Empty, Empty, Empty, Empty, Empty], Cross)]
+    #[case(vec![Empty, Empty, Empty, Cross, Cross, Cross, Empty, Empty, Empty], Cross)]
+    #[case(vec![Empty, Empty, Empty, Empty, Empty, Empty, Cross, Cross, Cross], Cross)]
+    #[case(vec![Naught, Naught, Naught, Empty, Empty, Empty, Empty, Empty, Empty], Naught)]
+    #[case(vec![Empty, Empty, Empty, Naught, Naught, Naught, Empty, Empty, Empty], Naught)]
+    #[case(vec![Empty, Empty, Empty, Empty, Empty, Empty, Naught, Naught, Naught], Naught)]
 
     fn winning_boards_return_correct_winner(
         #[case] initial_board: Vec<Symbol>,
