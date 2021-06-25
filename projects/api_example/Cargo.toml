@@ -1,0 +1,7 @@
+[workspace]
+
+members = [
+    "web_api",
+    "domain",
+    "persistence"
+]
